@@ -66,40 +66,33 @@ module.exports = function (app) {
         .put(function (req, res) {
             let { _id, issue_title, issue_text, created_by, assigned_to, open, status_text } = req.body;
 
-            let errors = [];
-
-            // **如果 _id 没输入就报错**
             if (!_id) {
-                errors.push({ error: 'missing _id' });
+                return res.json({ error: 'missing _id' });
+            } else {
+                // **如果 _id 有输入但找不到对应 issue, 就报错**
+                let issue = issues.find((i) => i._id === _id);
+                // **如果 _id 有输入但找不到对应 issue, 就报错**
+                if (issue) {
+                    // **如果 _id 有输入并且找到了对应的 issue，但没有输入任何更新字段, 就报错**
+                    if (!issue_title && !issue_text && !created_by && !assigned_to && !status_text && !open) {
+                        return res.json({ error: 'no update field(s) sent', _id: _id });
+                    }
+                    // **如果没有错误，则更新 issue**
+                    if (issue_title) issue.issue_title = issue_title;
+                    if (issue_text) issue.issue_text = issue_text;
+                    if (created_by) issue.created_by = created_by;
+                    if (assigned_to) issue.assigned_to = assigned_to;
+                    if (status_text) issue.status_text = status_text;
+                    if (open !== undefined) issue.open = open;
+                    issue.updated_on = new Date();
+
+                    return res.json({ result: 'successfully updated', _id: _id });
+                } else {
+                    return res.json({ error: 'could not update', _id: _id });
+                }
             }
-
-            // **如果 _id 有输入但找不到对应issue,就报错**
-            let issue = issues.find((i) => i._id === _id);
-            if (_id && !issue) {
-                errors.push({ error: 'could not update', _id: _id });
-            }
-
-            // **如果id有输入，但没有输入任何更新字段**
-            if (_id && !issue_title && !issue_text && !created_by && !assigned_to && !status_text && !open) {
-                errors.push({ error: 'no update field(s) sent', _id: _id });
-            }
-
-            // **如果有错误，返回所有错误**
-            if (errors.length > 0) {
-                return res.status(400).json(errors);
-            }
-
-            // **如果没有错误，则更新 issue**
-            if (issue_title) issue.issue_title = issue_title;
-            if (issue_text) issue.issue_text = issue_text;
-            if (created_by) issue.created_by = created_by;
-            if (assigned_to) issue.assigned_to = assigned_to;
-            if (status_text) issue.status_text = status_text;
-            if (open !== undefined) issue.open = open;
-            issue.updated_on = new Date();
-
-            res.json({ result: 'successfully updated', _id: _id });
         })
+
         // **DELETE 删除 issue**
         .delete(function (req, res) {
             let { _id } = req.body;

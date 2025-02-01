@@ -60,6 +60,7 @@ suite('Functional Tests', function () {
                 });
         });
     });
+
     // GET PART
     suite('GET /api/issues/{project}', function () {
         test('View issues on a project', function (done) {
@@ -99,6 +100,7 @@ suite('Functional Tests', function () {
                 });
         });
     });
+
     // PUT PART
     suite('PUT /api/issues/{project}', function () {
         test('Update one field on an issue', function (done) {
@@ -130,9 +132,8 @@ suite('Functional Tests', function () {
                 .put('/api/issues/test-project')
                 .send({ issue_title: 'No ID' })
                 .end(function (err, res) {
-                    assert.equal(res.status, 400);
-                    assert.isArray(res.body); // 返回应该是数组
-                    assert.deepInclude(res.body, { error: 'missing _id' }); // 确保包含这个错误
+                    assert.isObject(res.body); // 返回的是对象
+                    assert.propertyVal(res.body, 'error', 'missing _id'); // 检查错误信息
                     done();
                 });
         });
@@ -142,9 +143,8 @@ suite('Functional Tests', function () {
                 .put('/api/issues/test-project')
                 .send({ _id: '1' })
                 .end(function (err, res) {
-                    assert.equal(res.status, 400);
-                    assert.isArray(res.body); // 现在返回的是数组
-                    assert.deepInclude(res.body, { error: 'no update field(s) sent', _id: '1' }); // 确保包含这个错误
+                    assert.isObject(res.body); // 返回的是对象
+                    assert.deepEqual(res.body, { error: 'no update field(s) sent', _id: '1' }); // 确保包含这个错误
                     done();
                 });
         });
@@ -152,12 +152,11 @@ suite('Functional Tests', function () {
         test('Update an issue with an invalid _id', function (done) {
             chai.request(server)
                 .put('/api/issues/test-project')
-                .send({ _id: '123456789' })
+                .send({ _id: '123456789', issue_title: 'TEST' })
                 .end(function (err, res) {
-                    assert.equal(res.status, 400);
-                    assert.isArray(res.body);
-                    assert.deepInclude(res.body, { error: 'could not update', _id: '123456789' });
-                    assert.deepInclude(res.body, { error: 'no update field(s) sent', _id: '123456789' }); // 确保包含这个错误
+                    console.log('Actual Response:', res.body); // 打印实际返回的对象
+                    assert.isObject(res.body); // 返回的是对象
+                    assert.deepEqual(res.body, { error: 'could not update', _id: '123456789' }); // 使用 deepEqual 比较完整对象
                     done();
                 });
         });
