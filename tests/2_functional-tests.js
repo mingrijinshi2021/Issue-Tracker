@@ -51,10 +51,12 @@ suite('Functional Tests', function () {
         test('Create an issue with missing required fields', function (done) {
             chai.request(server)
                 .post('/api/issues/test-project')
-                .send({})
+                .send({ issue_title: 'Required Fields Issue' })
                 .end(function (err, res) {
                     assert.equal(res.status, 400); // 假设你的 API 返回 400
+                    assert.isObject(res.body);
                     assert.property(res.body, 'error');
+                    assert.propertyVal(res.body, 'error', 'required field(s) missing');
                     done();
                 });
         });

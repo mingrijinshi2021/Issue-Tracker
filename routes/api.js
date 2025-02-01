@@ -10,16 +10,17 @@ module.exports = function (app) {
             let project = req.params.project;
             let filter = { project: project };
 
-            if (req.query.open !== undefined) {
-                filter.open = req.query.open === 'true';
-            }
-            if (req.query.assigned_to) {
-                filter.assigned_to = req.query.assigned_to;
+            // 遍历查询参数，动态构建过滤条件
+            for (let key in req.query) {
+                if (req.query.hasOwnProperty(key)) {
+                    filter[key] = req.query[key];
+                }
             }
 
             // 过滤符合条件的 issue
             let result = issues.filter((issue) => Object.keys(filter).every((key) => issue[key] === filter[key]));
 
+            // 返回符合条件的所有字段信息
             res.json(result);
         })
 
