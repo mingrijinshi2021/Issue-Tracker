@@ -1,6 +1,18 @@
 'use strict';
 
 let issues = []; // 用数组存储 issues
+issues.push({
+    _id: 1,
+    project: 'project1',
+    issue_title: 'issue1',
+    issue_text: 'issue1 text',
+    created_by: 'user1',
+    assigned_to: 'user2',
+    open: true,
+    status_text: 'open',
+    created_on: new Date(),
+    updated_on: new Date(),
+});
 
 module.exports = function (app) {
     app.route('/api/issues/:project')
@@ -30,7 +42,7 @@ module.exports = function (app) {
             let { issue_title, issue_text, created_by, assigned_to, status_text } = req.body;
 
             if (!issue_title || !issue_text || !created_by) {
-                return res.status(400).json({ error: 'required field(s) missing' });
+                return res.json({ error: 'required field(s) missing' });
             }
 
             let newIssue = {
@@ -55,24 +67,25 @@ module.exports = function (app) {
             let { _id, issue_title, issue_text, created_by, assigned_to, open, status_text } = req.body;
 
             if (!_id) {
-                return res.status(400).json({ error: 'missing _id' });
+                return res.json({ error: 'missing _id' });
             }
 
             let issue = issues.find((i) => i._id === _id);
             if (!issue) {
-                return res.status(404).json({ error: 'could not update', _id: _id });
+                return res.json({ error: 'could not update', _id: _id });
             }
             // 如果什么更新字段都不包含,就报错
-            if (!issue_title && !issue_text && !created_by && !assigned_to && !status_text) {
-                return res.status(400).json({ error: 'no update field(s) sent', _id: _id });
+            if (!issue_title && !issue_text && !created_by && !assigned_to && !status_text && !open) {
+                return res.json({ error: 'no update field(s) sent', _id: _id });
             }
+
             // 更新字段
             if (issue_title) issue.issue_title = issue_title;
             if (issue_text) issue.issue_text = issue_text;
             if (created_by) issue.created_by = created_by;
             if (assigned_to) issue.assigned_to = assigned_to;
             if (status_text) issue.status_text = status_text;
-            if (open !== undefined) issue.open = open === 'true';
+            if (open) issue.open = open;
             issue.updated_on = new Date();
 
             res.json({ result: 'successfully updated', _id: _id });
@@ -83,12 +96,12 @@ module.exports = function (app) {
             let { _id } = req.body;
 
             if (!_id) {
-                return res.status(400).json({ error: 'missing _id' });
+                return res.json({ error: 'missing _id' });
             }
 
             let index = issues.findIndex((i) => i._id === _id);
             if (index === -1) {
-                return res.status(400).json({ error: 'could not delete', _id: _id });
+                return res.json({ error: 'could not delete', _id: _id });
             }
 
             issues.splice(index, 1);

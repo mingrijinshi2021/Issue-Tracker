@@ -7,7 +7,7 @@ chai.use(chaiHttp);
 
 suite('Functional Tests', function () {
     let testIssueId;
-
+    // POST PART
     suite('POST /api/issues/{project}', function () {
         test('Create an issue with every field', function (done) {
             chai.request(server)
@@ -53,7 +53,6 @@ suite('Functional Tests', function () {
                 .post('/api/issues/test-project')
                 .send({ issue_title: 'Required Fields Issue' })
                 .end(function (err, res) {
-                    assert.equal(res.status, 400); // 假设你的 API 返回 400
                     assert.isObject(res.body);
                     assert.property(res.body, 'error');
                     assert.propertyVal(res.body, 'error', 'required field(s) missing');
@@ -61,7 +60,7 @@ suite('Functional Tests', function () {
                 });
         });
     });
-
+    // GET PART
     suite('GET /api/issues/{project}', function () {
         test('View issues on a project', function (done) {
             chai.request(server)
@@ -100,7 +99,7 @@ suite('Functional Tests', function () {
                 });
         });
     });
-
+    // PUT PART
     suite('PUT /api/issues/{project}', function () {
         test('Update one field on an issue', function (done) {
             chai.request(server)
@@ -129,13 +128,36 @@ suite('Functional Tests', function () {
                 .put('/api/issues/test-project')
                 .send({ issue_title: 'No ID' })
                 .end(function (err, res) {
-                    assert.equal(res.status, 400);
                     assert.property(res.body, 'error');
+                    assert.propertyVal(res.body, 'error', 'missing _id');
+                    done();
+                });
+        });
+
+        test('Update an issue with no fields to update', function (done) {
+            chai.request(server)
+                .put('/api/issues/test-project')
+                .send({ _id: 1 })
+                .end(function (err, res) {
+                    const expectedResponse = { error: 'no update field(s) sent', _id: 1 };
+                    assert.deepEqual(res.body, expectedResponse, '返回的对象不匹配'); // 直接比较整个对象
+                    done();
+                });
+        });
+
+        test('Update an issue with an invalid _id', function (done) {
+            chai.request(server)
+                .put('/api/issues/test-project')
+                .send({ _id: 123456789 })
+                .end(function (err, res) {
+                    const expectedResponse = { error: 'could not update', _id: 123456789 };
+                    assert.deepEqual(res.body, expectedResponse, '返回的对象不匹配'); // 直接比较整个对象
                     done();
                 });
         });
     });
 
+    // DELETE PART
     suite('DELETE /api/issues/{project}', function () {
         test('Delete an issue', function (done) {
             chai.request(server)
@@ -153,7 +175,6 @@ suite('Functional Tests', function () {
                 .delete('/api/issues/test-project')
                 .send({ _id: 'invalidID' })
                 .end(function (err, res) {
-                    assert.equal(res.status, 400);
                     assert.property(res.body, 'error');
                     done();
                 });
@@ -164,7 +185,6 @@ suite('Functional Tests', function () {
                 .delete('/api/issues/test-project')
                 .send({})
                 .end(function (err, res) {
-                    assert.equal(res.status, 400);
                     assert.property(res.body, 'error');
                     done();
                 });
