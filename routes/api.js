@@ -65,16 +65,25 @@ module.exports = function (app) {
         // **PUT 更新 issue**
         .put(function (req, res) {
             let { _id, issue_title, issue_text, created_by, assigned_to, open, status_text } = req.body;
-
+            // **如果 _id 没有输入**
             if (!_id) {
                 return res.json({ error: 'missing _id' });
-            } else {
-                // **如果 _id 有输入但找不到对应 issue, 就报错**
+            }
+            // **如果 _id 有输入**
+            else {
+                // **查找 issue**
                 let issue = issues.find((i) => i._id === _id);
-                // **如果 _id 有输入但找不到对应 issue, 就报错**
+                // **如果对应的issue存在**
                 if (issue) {
-                    // **如果 _id 有输入并且找到了对应的 issue，但没有输入任何更新字段, 就报错**
-                    if (!issue_title && !issue_text && !created_by && !assigned_to && !status_text && !open) {
+                    // **如果找到了对应的 issue，但没有输入任何更新字段, 就报错**
+                    if (
+                        !issue_title &&
+                        !issue_text &&
+                        !created_by &&
+                        !assigned_to &&
+                        !status_text &&
+                        open === undefined
+                    ) {
                         return res.json({ error: 'no update field(s) sent', _id: _id });
                     }
                     // **如果没有错误，则更新 issue**
@@ -83,11 +92,16 @@ module.exports = function (app) {
                     if (created_by) issue.created_by = created_by;
                     if (assigned_to) issue.assigned_to = assigned_to;
                     if (status_text) issue.status_text = status_text;
-                    if (open !== undefined) issue.open = open;
+                    if (open !== undefined) {
+                        // 如果复选框被勾选，`open` 会是字符串 "false"。我们将其转换为布尔值 `false`
+                        issue.open = open === 'false' ? false : true;
+                    }
                     issue.updated_on = new Date();
 
                     return res.json({ result: 'successfully updated', _id: _id });
-                } else {
+                }
+                // **如果没有找到对应的 issue**
+                else {
                     return res.json({ error: 'could not update', _id: _id });
                 }
             }
