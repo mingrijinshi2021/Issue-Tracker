@@ -137,10 +137,10 @@ suite('Functional Tests', function () {
         test('Update an issue with no fields to update', function (done) {
             chai.request(server)
                 .put('/api/issues/test-project')
-                .send({ _id: 1 })
+                .send({ _id: '1' })
                 .end(function (err, res) {
-                    const expectedResponse = { error: 'no update field(s) sent', _id: 1 };
-                    assert.deepEqual(res.body, expectedResponse, '返回的对象不匹配'); // 直接比较整个对象
+                    const expectedResponse = { error: 'no update field(s) sent', _id: '1' };
+                    assert.deepStrictEqual(res.body, expectedResponse, '返回的对象不匹配'); // 直接比较整个对象
                     done();
                 });
         });
@@ -148,10 +148,10 @@ suite('Functional Tests', function () {
         test('Update an issue with an invalid _id', function (done) {
             chai.request(server)
                 .put('/api/issues/test-project')
-                .send({ _id: 123456789 })
+                .send({ _id: '123456789' })
                 .end(function (err, res) {
-                    const expectedResponse = { error: 'could not update', _id: 123456789 };
-                    assert.deepEqual(res.body, expectedResponse, '返回的对象不匹配'); // 直接比较整个对象
+                    const expectedResponse = { error: 'could not update', _id: '123456789' };
+                    assert.deepStrictEqual(res.body, expectedResponse, '返回的对象不匹配'); // 直接比较整个对象
                     done();
                 });
         });

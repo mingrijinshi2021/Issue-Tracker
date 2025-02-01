@@ -2,7 +2,7 @@
 
 let issues = []; // 用数组存储 issues
 issues.push({
-    _id: 1,
+    _id: '1',
     project: 'project1',
     issue_title: 'issue1',
     issue_text: 'issue1 text',
@@ -85,7 +85,7 @@ module.exports = function (app) {
             if (created_by) issue.created_by = created_by;
             if (assigned_to) issue.assigned_to = assigned_to;
             if (status_text) issue.status_text = status_text;
-            if (open) issue.open = open;
+            if (open !== undefined) issue.open = open;
             issue.updated_on = new Date();
 
             res.json({ result: 'successfully updated', _id: _id });
