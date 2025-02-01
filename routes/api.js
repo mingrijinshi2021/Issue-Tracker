@@ -1,27 +1,97 @@
 'use strict';
 
-module.exports = function (app) {
+let issues = []; // 用数组存储 issues
 
-  app.route('/api/issues/:project')
-  
-    .get(function (req, res){
-      let project = req.params.project;
-      
-    })
-    
-    .post(function (req, res){
-      let project = req.params.project;
-      
-    })
-    
-    .put(function (req, res){
-      let project = req.params.project;
-      
-    })
-    
-    .delete(function (req, res){
-      let project = req.params.project;
-      
-    });
-    
+module.exports = function (app) {
+    app.route('/api/issues/:project')
+
+        // **GET 获取 issue 列表**
+        .get(function (req, res) {
+            let project = req.params.project;
+            let filter = { project: project };
+
+            if (req.query.open !== undefined) {
+                filter.open = req.query.open === 'true';
+            }
+            if (req.query.assigned_to) {
+                filter.assigned_to = req.query.assigned_to;
+            }
+
+            // 过滤符合条件的 issue
+            let result = issues.filter((issue) => Object.keys(filter).every((key) => issue[key] === filter[key]));
+
+            res.json(result);
+        })
+
+        // **POST 创建新的 issue**
+        .post(function (req, res) {
+            let project = req.params.project;
+            let { issue_title, issue_text, created_by, assigned_to, status_text } = req.body;
+
+            if (!issue_title || !issue_text || !created_by) {
+                return res.status(400).json({ error: 'required field(s) missing' });
+            }
+
+            let newIssue = {
+                _id: new Date().getTime().toString(), // 生成唯一 ID
+                project,
+                issue_title,
+                issue_text,
+                created_by,
+                assigned_to: assigned_to || '',
+                open: true,
+                status_text: status_text || '',
+                created_on: new Date(),
+                updated_on: new Date(),
+            };
+
+            issues.push(newIssue);
+            res.json(newIssue);
+        })
+
+        // **PUT 更新 issue**
+        .put(function (req, res) {
+            let { _id, issue_title, issue_text, created_by, assigned_to, open, status_text } = req.body;
+
+            if (!_id) {
+                return res.status(400).json({ error: 'missing _id' });
+            }
+
+            let issue = issues.find((i) => i._id === _id);
+            if (!issue) {
+                return res.status(404).json({ error: 'could not update', _id: _id });
+            }
+            // 如果什么更新字段都不包含,就报错
+            if (!issue_title && !issue_text && !created_by && !assigned_to && !status_text) {
+                return res.status(400).json({ error: 'no update field(s) sent', _id: _id });
+            }
+            // 更新字段
+            if (issue_title) issue.issue_title = issue_title;
+            if (issue_text) issue.issue_text = issue_text;
+            if (created_by) issue.created_by = created_by;
+            if (assigned_to) issue.assigned_to = assigned_to;
+            if (status_text) issue.status_text = status_text;
+            if (open !== undefined) issue.open = open === 'true';
+            issue.updated_on = new Date();
+
+            res.json({ result: 'successfully updated', _id: _id });
+        })
+
+        // **DELETE 删除 issue**
+        .delete(function (req, res) {
+            let { _id } = req.body;
+
+            if (!_id) {
+                return res.status(400).json({ error: 'missing _id' });
+            }
+
+            let index = issues.findIndex((i) => i._id === _id);
+            if (index === -1) {
+                return res.status(400).json({ error: 'could not delete', _id: _id });
+            }
+
+            issues.splice(index, 1);
+            res.json({ result: 'successfully deleted', _id: _id });
+        });
 };
+
