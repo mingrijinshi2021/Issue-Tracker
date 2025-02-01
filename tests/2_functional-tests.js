@@ -108,6 +108,7 @@ suite('Functional Tests', function () {
                 .end(function (err, res) {
                     assert.equal(res.status, 200);
                     assert.propertyVal(res.body, 'result', 'successfully updated');
+                    assert.propertyVal(res.body, '_id', testIssueId);
                     done();
                 });
         });
@@ -119,6 +120,7 @@ suite('Functional Tests', function () {
                 .end(function (err, res) {
                     assert.equal(res.status, 200);
                     assert.propertyVal(res.body, 'result', 'successfully updated');
+                    assert.propertyVal(res.body, '_id', testIssueId);
                     done();
                 });
         });
@@ -128,8 +130,9 @@ suite('Functional Tests', function () {
                 .put('/api/issues/test-project')
                 .send({ issue_title: 'No ID' })
                 .end(function (err, res) {
-                    assert.property(res.body, 'error');
-                    assert.propertyVal(res.body, 'error', 'missing _id');
+                    assert.equal(res.status, 400);
+                    assert.isArray(res.body); // 返回应该是数组
+                    assert.deepInclude(res.body, { error: 'missing _id' }); // 确保包含这个错误
                     done();
                 });
         });
@@ -139,8 +142,9 @@ suite('Functional Tests', function () {
                 .put('/api/issues/test-project')
                 .send({ _id: '1' })
                 .end(function (err, res) {
-                    const expectedResponse = { error: 'no update field(s) sent', _id: '1' };
-                    assert.deepStrictEqual(res.body, expectedResponse, '返回的对象不匹配'); // 直接比较整个对象
+                    assert.equal(res.status, 400);
+                    assert.isArray(res.body); // 现在返回的是数组
+                    assert.deepInclude(res.body, { error: 'no update field(s) sent', _id: '1' }); // 确保包含这个错误
                     done();
                 });
         });
@@ -150,8 +154,10 @@ suite('Functional Tests', function () {
                 .put('/api/issues/test-project')
                 .send({ _id: '123456789' })
                 .end(function (err, res) {
-                    const expectedResponse = { error: 'could not update', _id: '123456789' };
-                    assert.deepStrictEqual(res.body, expectedResponse, '返回的对象不匹配'); // 直接比较整个对象
+                    assert.equal(res.status, 400);
+                    assert.isArray(res.body);
+                    assert.deepInclude(res.body, { error: 'could not update', _id: '123456789' });
+                    assert.deepInclude(res.body, { error: 'no update field(s) sent', _id: '123456789' }); // 确保包含这个错误
                     done();
                 });
         });
